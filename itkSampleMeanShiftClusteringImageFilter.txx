@@ -39,31 +39,32 @@ void
 SampleMeanShiftClusteringImageFilter< TInputImage >
 ::GenerateData()
 {   
-  typedef itk::Statistics::ScalarImageToListAdaptor< TInputImage >
+  
+  typedef itk::Statistics::ScalarImageToListAdaptor< TInputImage>
     ListSampleType ;
   
-  ListSampleType::Pointer listSample = 
+  typename ListSampleType::Pointer listSample = 
     ListSampleType::New() ;
   listSample->SetImage( this->GetInput() ) ;
 
   typedef itk::Statistics::KdTreeGenerator< ListSampleType > 
     TreeGeneratorType ;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
+  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
   treeGenerator->SetSample( listSample ) ;
   treeGenerator->SetBucketSize( 200 ) ;
   treeGenerator->Update() ;
 
-  typedef TreeGeneratorType::KdTreeType TreeType ;
-  TreeType::Pointer tree = treeGenerator->GetOutput() ;
+  typedef typename TreeGeneratorType::KdTreeType TreeType ;
+  typename TreeType::Pointer tree = treeGenerator->GetOutput() ;
 
   typedef itk::Statistics::HypersphereKernelMeanShiftModeSeeker< 
     TreeType > ModeSeekerType ;
-  ModeSeekerType::Pointer modeSeeker = ModeSeekerType::New() ;
+  typename ModeSeekerType::Pointer modeSeeker = ModeSeekerType::New() ;
   modeSeeker->SetInputSample( tree ) ;
   modeSeeker->SetSearchRadius( 4.0 ) ;
 
-  typedef itk::Statistics::MeanShiftModeCacheMethod< TreeType::MeasurementVectorType > CacheMethodType ;
-  CacheMethodType::Pointer cacheMethod = CacheMethodType::New() ;
+  typedef itk::Statistics::MeanShiftModeCacheMethod< typename TreeType::MeasurementVectorType > CacheMethodType ;
+  typename CacheMethodType::Pointer cacheMethod = CacheMethodType::New() ;
   cacheMethod->SetMaximumEntries(255) ;
   cacheMethod->SetMaximumConsecutiveFailures(100) ;
   cacheMethod->SetHitRatioThreshold( 0.5 ) ;
@@ -71,37 +72,36 @@ SampleMeanShiftClusteringImageFilter< TInputImage >
 
   typedef itk::Statistics::SampleMeanShiftBlurringFilter< TreeType >
     FilterType ;
-  FilterType::Pointer filter = FilterType::New() ;
+  typename FilterType::Pointer filter = FilterType::New() ;
   filter->SetInputSample( tree ) ;
   filter->SetMeanShiftModeSeeker( modeSeeker ) ;
   filter->Update() ;
 
-  typedef ImageType OutputImageType ;
-  OutputImageType::Pointer outputImage = OutputImageType::New() ;
-  outputImage->SetRegions( image->GetLargestPossibleRegion() ) ;
+  typename TInputImage::Pointer outputImage = OutputImageType::New() ;
+  outputImage->SetRegions( this->GetInput()->GetLargestPossibleRegion() ) ;
   outputImage->Allocate() ;
 
-  typedef itk::ImageRegionIterator< OutputImageType > ImageIteratorType ;
+  typedef itk::ImageRegionIterator< TInputImage> ImageIteratorType ;
   ImageIteratorType io_iter( outputImage,
                              outputImage->GetLargestPossibleRegion() ) ;
   io_iter.GoToBegin() ;
 
-  FilterType::OutputType::Pointer output = filter->GetOutput() ;
-  FilterType::OutputType::Iterator fo_iter = output->Begin() ;
-  FilterType::OutputType::Iterator fo_end = output->End() ;
+  typename FilterType::OutputType::Pointer output = filter->GetOutput() ;
+  typename FilterType::OutputType::Iterator fo_iter = output->Begin() ;
+  typename FilterType::OutputType::Iterator fo_end = output->End() ;
   
 //this is definitely necessary
   while ( fo_iter != fo_end )
     {
-    io_iter.Set( (PixelType) fo_iter.GetMeasurementVector()[0]) ;
+    io_iter.Set( (InputPixelType) fo_iter.GetMeasurementVector()[0]) ;
     ++fo_iter ;
     ++io_iter ;
     }
 
-  ListSampleType::Pointer listSample2 = ListSampleType::New() ;
+  typename ListSampleType::Pointer listSample2 = ListSampleType::New() ;
   listSample2->SetImage( outputImage ) ;
 
-  TreeGeneratorType::Pointer treeGenerator2 = TreeGeneratorType::New() ;
+  typename TreeGeneratorType::Pointer treeGenerator2 = TreeGeneratorType::New() ;
   treeGenerator2->SetSample( listSample2 ) ;
   treeGenerator2->SetBucketSize( 200 ) ;
   treeGenerator2->Update() ;
@@ -109,7 +109,7 @@ SampleMeanShiftClusteringImageFilter< TInputImage >
   typedef itk::Statistics::SampleMeanShiftClusteringFilter< TreeType >
     ClusteringMethodType ;
 
-  ClusteringMethodType::Pointer clusteringMethod =
+  typename ClusteringMethodType::Pointer clusteringMethod =
     ClusteringMethodType::New() ;
   clusteringMethod->SetInputSample( treeGenerator2->GetOutput() ) ;
   clusteringMethod->SetThreshold( 0.5 ) ;
@@ -117,23 +117,23 @@ SampleMeanShiftClusteringImageFilter< TInputImage >
   clusteringMethod->Update() ;
 
   // save clustered image
-  OutputImageType::Pointer clusterMap = this->GetOutput();
-  clusterMap->SetRegions( image->GetLargestPossibleRegion() ) ;
+  typename OutputImageType::Pointer clusterMap = this->GetOutput();
+  clusterMap->SetRegions( this->GetInput()->GetLargestPossibleRegion() ) ;
   clusterMap->Allocate() ;
   
   ImageIteratorType m_iter( clusterMap, 
                             clusterMap->GetLargestPossibleRegion() ) ;
   m_iter.GoToBegin() ;
   
-  ClusteringMethodType::ClusterLabelsType clusterLabels = 
+  typename ClusteringMethodType::ClusterLabelsType clusterLabels = 
     clusteringMethod->GetOutput() ;
   
-  ClusteringMethodType::ClusterLabelsType::iterator co_iter = 
+  typename ClusteringMethodType::ClusterLabelsType::iterator co_iter = 
     clusterLabels.begin() ;
   
   while ( co_iter != clusterLabels.end() )
     {
-    m_iter.Set( (PixelType) *co_iter ) ;
+    m_iter.Set( (InputPixelType) *co_iter ) ;
     ++co_iter ;
     ++m_iter ;
     }

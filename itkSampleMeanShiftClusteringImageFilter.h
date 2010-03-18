@@ -1,3 +1,4 @@
+
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
@@ -75,13 +76,15 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(SampleMeanShiftClusteringImageFilter, ImageToImageFilter);
-  
+
   /** Image typedef support. */
   typedef typename InputImageType::PixelType  InputPixelType;
   typedef typename OutputImageType::PixelType OutputPixelType;
-
+#if 0
+  
   /** Type used for representing the Mean values */
   typedef typename NumericTraits< InputPixelType >::RealType RealPixelType;
+  
   
   /** Create a List from the scalar image */
   typedef itk::Statistics::ImageToListSampleAdaptor< InputImageType > AdaptorType;
@@ -125,6 +128,7 @@ public:
   /** End concept checking */
 #endif
 
+#endif
 protected:
   SampleMeanShiftClusteringImageFilter() {};
   virtual ~SampleMeanShiftClusteringImageFilter() {}

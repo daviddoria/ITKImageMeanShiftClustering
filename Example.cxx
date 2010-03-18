@@ -27,14 +27,16 @@ int main(int argc, char* argv[] )
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName(inputFileName);
   
+  
   typedef itk::SampleMeanShiftClusteringImageFilter< UCImageType>ClusteringImageFilterType;
   ClusteringImageFilterType::Pointer clustering = ClusteringImageFilterType::New();
-  clustering->SetInput( reader->GetOutput() );
-    
+  //clustering->SetInput( reader->GetOutput() );
+  
+  
   typedef  itk::ImageFileWriter< UCImageType  > WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName(outputFileName);
-  writer->SetInput( clustering->GetOutput() );
+//  writer->SetInput( clustering->GetOutput() );
   writer->Update();
     
   return EXIT_SUCCESS;
